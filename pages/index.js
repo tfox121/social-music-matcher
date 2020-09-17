@@ -1,65 +1,116 @@
+import { useState } from "react";
+
 import Head from 'next/head'
 import styles from '../styles/Home.module.css'
+import LastfmInput from '../components/LastfmInput'
+import { getMatching } from "../lib/lastfm";
+import { Segment, Table, Grid, Dimmer, Loader, Header } from "semantic-ui-react";
 
 export default function Home() {
+  const [loading, setLoading] = useState(false);
+  const [lastfmUser1, setLastfmUser1] = useState("");
+  const [lastfmUser2, setLastfmUser2] = useState("");
+  const [userDataOne, setUserDataOne] = useState({})
+  const [userDataTwo, setUserDataTwo] = useState({})
+  const [errorMsgLFM, setErrorMsgLFM] = useState("");
+
+  const submitSearch = async (e) => {
+    e.preventDefault();
+    console.log(process.env.NEXT_PUBLIC_LASTFM_API);
+    console.log("SUBMIT");
+    setLoading(true)
+    const userOneMatches = await getMatching(lastfmUser1, lastfmUser2, setErrorMsgLFM);
+    setUserDataOne({ ...userDataOne, userOneMatches });
+    const userTwoMatches = await getMatching(lastfmUser2, lastfmUser1, setErrorMsgLFM);
+    setUserDataTwo({ ...userDataTwo, userTwoMatches });
+    setLoading(false);
+  }
+
   return (
     <div className={styles.container}>
       <Head>
-        <title>Create Next App</title>
+        <title>Last.fm Music Matcher!</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/import?filter=next.js&utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+        <Header as="h1">Share your music!</Header>
+        <LastfmInput
+          lastfmUser1={lastfmUser1}
+          lastfmUser2={lastfmUser2}
+          error={!errorMsgLFM === ""}
+          setLastfmUser1={setLastfmUser1}
+          setLastfmUser2={setLastfmUser2}
+          submitUser={submitSearch}
+        />
+        {loading ? (
+          <Dimmer active inverted>
+            <Loader inverted>Loading</Loader>
+          </Dimmer>
+        ) : (
+          userDataTwo.userTwoMatches &&
+          userDataOne.userOneMatches && (
+            <Segment padded="very">
+              <Grid columns={2} divided>
+                <Grid.Row>
+                  <Grid.Column>
+                    <Table basic="very" textAlign="center" celled collapsing>
+                      <Table.Header>
+                        <Table.Row>
+                          <Table.HeaderCell>
+                            {lastfmUser1} share with {lastfmUser2}
+                          </Table.HeaderCell>
+                        </Table.Row>
+                      </Table.Header>
+                      <Table.Body>
+                        {userDataTwo.userTwoMatches &&
+                          userDataTwo.userTwoMatches.map((artistObj) => {
+                            return (
+                              <Table.Row key={artistObj.name}>
+                                <Table.Cell>{artistObj.name}</Table.Cell>
+                              </Table.Row>
+                            );
+                          })}
+                      </Table.Body>
+                    </Table>
+                  </Grid.Column>
+                  <Grid.Column>
+                    <Table basic="very" textAlign="center" celled collapsing>
+                      <Table.Header>
+                        <Table.Row>
+                          <Table.HeaderCell>
+                            {lastfmUser2} share with {lastfmUser1}
+                          </Table.HeaderCell>
+                        </Table.Row>
+                      </Table.Header>
+                      <Table.Body>
+                        {userDataOne.userOneMatches &&
+                          userDataOne.userOneMatches.map((artistObj) => {
+                            return (
+                              <Table.Row key={artistObj.name}>
+                                <Table.Cell>{artistObj.name}</Table.Cell>
+                              </Table.Row>
+                            );
+                          })}
+                      </Table.Body>
+                    </Table>
+                  </Grid.Column>
+                </Grid.Row>
+              </Grid>
+            </Segment>
+          )
+        )}
       </main>
 
       <footer className={styles.footer}>
         <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
+          href="https://github.com/tfox121"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
+          Made by Tom Fox
         </a>
       </footer>
     </div>
-  )
+  );
 }

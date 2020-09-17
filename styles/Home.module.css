@@ -115,6 +115,17 @@
   height: 1em;
 }
 
+.searchForm {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.searchButton {
+  width: 30%
+}
+
 @media (max-width: 600px) {
   .grid {
     width: 100%;
