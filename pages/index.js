@@ -8,15 +8,15 @@ import { Segment, Table, Grid, Dimmer, Loader, Header } from "semantic-ui-react"
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
-  const [lastfmUser1, setLastfmUser1] = useState("");
-  const [lastfmUser2, setLastfmUser2] = useState("");
+  const [lastfmUser1, setLastfmUser1] = useState("foxtrapper121");
+  const [lastfmUser2, setLastfmUser2] = useState("lumnotglum");
   const [userDataOne, setUserDataOne] = useState({})
   const [userDataTwo, setUserDataTwo] = useState({})
   const [errorMsgLFM, setErrorMsgLFM] = useState("");
 
   const submitSearch = async (e) => {
+    console.time('Last.fm query')
     e.preventDefault();
-    console.log(process.env.NEXT_PUBLIC_LASTFM_API);
     console.log("SUBMIT");
     setLoading(true)
     const userOneMatches = await getMatching(lastfmUser1, lastfmUser2, setErrorMsgLFM);
@@ -24,6 +24,7 @@ export default function Home() {
     const userTwoMatches = await getMatching(lastfmUser2, lastfmUser1, setErrorMsgLFM);
     setUserDataTwo({ ...userDataTwo, userTwoMatches });
     setLoading(false);
+    console.timeEnd("Last.fm query");
   }
 
   return (
